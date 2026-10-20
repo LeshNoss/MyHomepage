@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>レシュノスのホームページ</title>
+	</head>
+	<body background="back.gif" text="white">
+	<a name="top"></a>
+		<font face="MS PGothic,Osaka,sans-serif">
+		<center>
+			<font color="orange">
+			<h1>★レシュノスのホームページ★</h1>
+			<h4>Welcome to LeshNoss's Homepage★彡</h4>
+			</font>
+			<p>このウェッブページを開いてくれてありがとう(^_-)-☆</p>
+			<p>ようこそ、たいやきの国へ</p>
+			<p>ついに！レシュノスの公式ホームページがｷﾀ━━━(ﾟ∀ﾟ)━━━!!</p>
+			<font color="yellow" size="5">
+			<marquee bgcolor="black" scrollamount="20">★☆★ついに10アクセス突破!!みんなありがとう!!いろんなページがあるから見ていってくれたらチョベリグ!!!!★☆★</marquee>
+			</font>
+
+			<img src="space.gif">
+
+			<table border="2" bgcolor='black'>
+			<tr>
+				<th>
+					<font color="orange">あなたは</font>
+					<font color="red" size="6"><b><span id="counter">読み込み中...</span></b></font>
+					<font color="orange">人目の漂流者です</font>
+				</th>
+			</tr>
+			</table>
+			<div id="kiriMessage"></div>
+
+			<img src="space.gif">
+
+			<table border="2" bgcolor="green">
+				<tr>
+					<th>目次</th>
+					<th>ページリンク</th>
+				</tr>
+				<tr>
+					<th>トップ</th>
+					<th><a href="index.html"><font color="cyan">トップページ</font></a></th>
+				</tr>
+				<tr>
+					<th>プロフィール</th>
+					<th><a href="profile.html"><font color="cyan">管理人の自己紹介</font></a></th>
+				</tr>
+				<tr>
+					<th>たいやき</th>
+					<th><a href="taiyaki.html"><font color="cyan">たいやきのすばらしさ</font></a></th>
+				</tr>
+				<tr>
+					<th>掲示板</th>
+					<th><a href="bbs.html"><font color="cyan">BBS</font></a></th>
+				</tr>
+				<tr>
+					<th>日記</th>
+					<th><a href="diary.html"><font color="cyan">レシュノスの日記</font></a></th>
+				</tr>
+				<tr>
+					<th>リンク集</th>
+					<th><a href="link.html"><font color="cyan">お世話になっているサイト</font></a></th>
+				</tr>
+
+			</table>
+
+			<img src="space.gif">
+
+			<table border="2" bgcolor="black">
+				<tr>
+					<th>日付</th>
+					<th>更新内容</th>
+				</tr>
+				<tr>
+					<th>26/09/28</th>
+					<th><font color="orange">制作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/09/28</th>
+					<th><font color="orange">トップページ制作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/09/28</th>
+					<th><font color="orange">トップページ完成！</font></th>
+				</tr>
+				<tr>
+					<th>26/09/28</th>
+					<th><font color="orange">プロフィール制作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/09/28</th>
+					<th><font color="orange">プロフィール完成！</font></th>
+				</tr>
+				<tr>
+					<th>26/09/29</th>
+					<th><font color="orange">たいやきページ制作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/09/29</th>
+					<th><font color="orange">掲示板制作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/09/29</th>
+					<th><font color="orange">掲示板完成！</font></th>
+				</tr>
+				<tr>
+					<th>26/09/29</th>
+					<th><font color="orange">日記制作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/09/29</th>
+					<th><font color="orange">日記完成！</font></th>
+				</tr>
+				<tr>
+					<th>26/10/20</th>
+					<th><font color="orange">リンク集製作開始</font></th>
+				</tr>
+				<tr>
+					<th>26/10/20</th>
+					<th><font color="orange">リンク集完成！</font></th>
+				</tr>
+
+			</table>
+
+			<p>※このページは 約7,000 バイト です</p>
+
+			<p>since 2026/09/28</p>
+			<p>※ページ内は🚭です。</p>
+			<p>※当サイトはリンクフリーです。</p>
+			<img src="banner.jpg" alt="バナー" border=2>
+
+			<p><a href="#top"><font color="cyan">トップへ戻る</font></a></p>
+			<p>©2026 LeshNoss</p>
+
+		</center>
+	</body>
+
+	<!-- Firebase (Firestore) の読み込み -->
+	<script type="module">
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+		import { getFirestore, doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+		const firebaseConfig = {
+			apiKey: "AIzaSyC2rb6gPvPULe-utzBSeMAu0xsMynG2qp4",
+			authDomain: "leshnosshp.firebaseapp.com",
+			projectId: "leshnosshp",
+			storageBucket: "leshnosshp.firebasestorage.app",
+			messagingSenderId: "4092882698",
+			appId: "1:4092882698:web:2f8be7aec00d692df294f3"
+		};
+
+		const app = initializeApp(firebaseConfig);
+		const db = getFirestore(app);
+
+		// キリ番リスト（お祝いしたい数字を登録）
+		const kiriNumbers = [10, 50, 100, 555, 777, 1000];
+
+		// 1. ローカルキャッシュがあればとりあえず表示
+		const savedCount = localStorage.getItem('last_counter_val');
+		if (savedCount) {
+			document.getElementById("counter").innerText = savedCount;
+		} else {
+			document.getElementById("counter").innerText = "---";
+		}
+
+		async function updateCounter() {
+			const counterRef = doc(db, "counters", "site");
+
+			try {
+				let currentCount = 0;
+				// sessionStorage で「このタブですでにカウントしたか」を判定
+				const hasVisitedThisSession = sessionStorage.getItem('visited_this_session');
+
+				if (!hasVisitedThisSession) {
+					// 【初回アクセス時のみ】Firebaseで +1 加算する
+					currentCount = await runTransaction(db, async (transaction) => {
+						const counterDoc = await transaction.get(counterRef);
+						let count = 1;
+						if (counterDoc.exists()) {
+							count = counterDoc.data().count + 1;
+						}
+						transaction.set(counterRef, { count: count });
+						return count;
+					});
+
+					// このタブでは訪問済みとして記録
+					sessionStorage.setItem('visited_this_session', 'true');
+				} else {
+					// 【リロード時など】カウント増分はせず、現在の数字を読み取るだけ
+					const counterDoc = await getDoc(counterRef);
+					if (counterDoc.exists()) {
+						currentCount = counterDoc.data().count;
+					} else {
+						currentCount = 1;
+					}
+				}
+
+				// 画面の表示を更新 & 次回用のキャッシュとして保存
+				document.getElementById("counter").innerText = currentCount;
+				localStorage.setItem('last_counter_val', currentCount);
+
+				// キリ番判定
+				const msgElem = document.getElementById("kiriMessage");
+				if (kiriNumbers.includes(currentCount) && msgElem) {
+					msgElem.innerHTML = `
+						<font color="yellow" size="5">
+							<marquee bgcolor="red" scrollamount="10">
+								★☆★ ${currentCount} アクセスのキリ番ゲットおめでとうございます！BBSまたはXのDMで報告してね ★☆★
+							</marquee>
+						</font>
+					`;
+				}
+			} catch (e) {
+				console.error("カウント更新エラー: ", e);
+				document.getElementById("counter").innerText = "ERROR";
+			}
+		}
+
+		// ページ読み込み時に実行
+		updateCounter();
+	</script>
+</html>

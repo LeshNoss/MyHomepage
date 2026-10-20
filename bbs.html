@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>BBS-レシュノスのホームページ</title>
+	</head>
+	<body bgcolor="hotpink" text="black">
+	<a name="top" id="top"></a>
+		<font face="MS PGothic,Osaka,sans-serif">
+		<center>
+			<font color="white">
+			<h1>★掲示板★</h1>
+			<h4>LeshNoss's BBS★彡</h4>
+			</font>
+
+			<p>自由に書き込んでいってね(*´ω｀) 荒らしはナシの方向で！</p>
+
+			<img src="space.gif">
+
+			<!-- ▼ 新規登録・ログオン欄 ▼ -->
+			<table border="2" bgcolor="gray">
+				<tr>
+					<th colspan="2">新規登録・ログオン</th>
+				</tr>
+				<tr>
+					<th>メール</th>
+					<td><input type="text" id="userEmail"></td>
+				</tr>
+				<tr>
+					<th>パスワード</th>
+					<td>
+						<input type="password" id="userPassword">
+						<br><font size="2">※パスワードは6文字以上</font>
+					</td>
+				</tr>
+			</table>
+			<p>
+			<button id="signupButton">新規登録</button>
+			<button id="loginButton">ログオン</button>
+			<button id="googleButton">Googleでログオン</button>
+			<button id="logoutButton">ログオフ</button>
+			</p>
+			<p id="authStatus">※ログオンしてないよ（このままでも書き込めます）</p>
+
+			<!-- ▼ 書き込みフォーム ▼ -->
+			<table border="2" bgcolor="green">
+				<tr>
+					<th>お名前</th>
+					<td><input type="text" id="nameField" maxlength="20" value="名無しさん"></td>
+				</tr>
+				<tr>
+					<th>コメント</th>
+					<td><textarea id="commentField" rows="3" cols="30" maxlength="200"></textarea></td>
+				</tr>
+			</table>
+
+			<p><button id="submitButton">★書き込む★</button></p>
+			<p id="statusArea"></p>
+
+			<img src="space.gif">
+
+			<font color="white">
+
+			<!-- ▼ ページ切り替え（上） ▼ -->
+			<p class="pager" id="pagerTop">
+				<button class="prevButton">◀前へ</button>
+				<span class="pageInfo">1 ページ</span>
+				<button class="nextButton">次へ▶</button>
+			</p>
+
+			<!-- ▼ 投稿一覧 ▼ -->
+			<div id="threadArea" align="left"></div>
+
+			<!-- ▼ ページ切り替え（下） ▼ -->
+			<p class="pager">
+				<button class="prevButton">◀前へ</button>
+				<span class="pageInfo">1 ページ</span>
+				<button class="nextButton">次へ▶</button>
+			</p>
+
+			</font>
+
+			<img src="space.gif">
+
+			<table border="2" bgcolor="green">
+				<tr>
+					<th>目次</th>
+					<th>ページリンク</th>
+				</tr>
+				<tr>
+					<th>トップ</th>
+					<th><a href="index.html"><font color="cyan">トップページ</font></a></th>
+				</tr>
+				<tr>
+					<th>プロフィール</th>
+					<th><a href="profile.html"><font color="cyan">管理人の自己紹介</font></a></th>
+				</tr>
+				<tr>
+					<th>たいやき</th>
+					<th><a href="taiyaki.html"><font color="cyan">たいやきのすばらしさ</font></a></th>
+				</tr>
+				<tr>
+					<th>掲示板</th>
+					<th><a href="bbs.html"><font color="cyan">BBS</font></a></th>
+				</tr>
+				<tr>
+					<th>日記</th>
+					<th><a href="diary.html"><font color="cyan">レシュノスの日記</font></a></th>
+				</tr>
+				<tr>
+					<th>リンク集</th>
+					<th><a href="link.html"><font color="cyan">お世話になっているサイト</font></a></th>
+				</tr>
+
+			</table>
+
+			<img src="space.gif">
+
+			<p>since 2026/09/28</p>
+			<p>※ページ内は🚭です。</p>
+			<p>※当サイトはリンクフリーです。</p>
+			<img src="banner.jpg" alt="バナー" border=2>
+
+			<img src="space.gif">
+
+			<p><a href="#top"><font color="cyan">トップへ戻る</font></a></p>
+			<p>©2026 LeshNoss</p>
+
+		</center>
+		</font>
+
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+			import {
+				getFirestore, collection, addDoc, deleteDoc, doc, query, orderBy, limit,
+				startAfter, getCountFromServer, onSnapshot, serverTimestamp
+			} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+			import {
+				getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+				signOut, onAuthStateChanged,
+				GoogleAuthProvider, signInWithPopup
+			} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+			// ==============================
+			// 設定
+			// ==============================
+			const PAGE_SIZE    = 30; // 1ページあたりの投稿数
+			const COOLDOWN_SEC = 10; // 書き込み後に待つ秒数
+
+			// Firebaseセットアップ（同じプロジェクト・同じコレクションを参照）
+			const app = initializeApp({
+				apiKey: "AIzaSyC2rb6gPvPULe-utzBSeMAu0xsMynG2qp4",
+				authDomain: "leshnosshp.firebaseapp.com",
+				projectId: "leshnosshp",
+				storageBucket: "leshnosshp.firebasestorage.app",
+				messagingSenderId: "4092882698",
+				appId: "1:4092882698:web:2f8be7aec00d692df294f3"
+			});
+			const db = getFirestore(app);
+			const postsRef = collection(db, "bbs");
+			const auth = getAuth(app);
+			let currentUser = null; // 今ログオン中のユーザー（未ログオンならnull）
+
+			// 使用するDOM要素をまとめて取得
+			const nameField     = document.getElementById("nameField");
+			const commentField  = document.getElementById("commentField");
+			const statusArea    = document.getElementById("statusArea");
+			const threadArea    = document.getElementById("threadArea");
+			const submitButton  = document.getElementById("submitButton");
+			const userEmail     = document.getElementById("userEmail");
+			const userPassword  = document.getElementById("userPassword");
+			const authStatus    = document.getElementById("authStatus");
+
+			// ==============================
+			// 表示まわり
+			// ==============================
+
+			// 表示前にタグを無効化（XSS対策・一括変換）
+			function sanitize(raw) {
+				const entities = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
+				return raw.replace(/[&<>]/g, (ch) => entities[ch]);
+			}
+
+			// 1件分の投稿テーブルをDOM APIで組み立てる
+			function buildPost(id, name, comment, stamp, uid) {
+				const table = document.createElement("table");
+				table.setAttribute("border", "1");
+				table.setAttribute("bgcolor", "navy");
+				table.setAttribute("width", "100%");
+
+				const headerCell = table.insertRow().insertCell();
+				headerCell.innerHTML =
+					'<font color="yellow"><b>' + sanitize(name) + "</b></font>" +
+					' <font color="silver" size="1">(' + stamp + ")</font>";
+
+				const bodyCell = table.insertRow().insertCell();
+				bodyCell.innerHTML = sanitize(comment).split("\n").join("<br>");
+
+				// 自分の投稿だけ削除ボタンを表示
+				if (currentUser && uid === currentUser.uid) {
+					const deleteRow  = table.insertRow();
+					const deleteCell = deleteRow.insertCell();
+					const deleteBtn  = document.createElement("button");
+					deleteBtn.textContent = "自分の投稿を削除";
+					deleteBtn.addEventListener("click", async () => {
+						if (confirm("本当に削除する？")) {
+							try {
+								await deleteDoc(doc(db, "bbs", id));
+								refreshCount();
+							} catch (e) {
+								console.error(e);
+								statusArea.textContent = "削除できなかった…orz (" + e.code + ")";
+							}
+						}
+					});
+					deleteCell.appendChild(deleteBtn);
+				}
+
+				return table;
+			}
+
+			function renderPosts(snapshot) {
+				threadArea.replaceChildren();
+
+				for (const docSnap of snapshot.docs) {
+					const data  = docSnap.data();
+					const stamp = data.createdAt
+						? data.createdAt.toDate().toLocaleString("ja-JP")
+						: "たった今";
+
+					threadArea.appendChild(buildPost(docSnap.id, data.name, data.comment, stamp, data.uid));
+
+					const spacer = document.createElement("img");
+					spacer.src = "space.gif";
+					spacer.height = 8;
+					threadArea.appendChild(spacer);
+				}
+			}
+
+			// ==============================
+			// ページ切り替え
+			// ==============================
+			let currentPage    = 0;      // 表示中のページ（0始まり）
+			let pageCursors    = [null]; // pageCursors[n] = n+1ページ目の先頭の「ひとつ前」の投稿
+			let totalPosts     = null;   // 投稿の総数（取得できなければnull）
+			let latestSnapshot = null;
+			let unsubscribe    = null;
+
+			// 総投稿数を取得してページ表示を更新
+			async function refreshCount() {
+				try {
+					const snap = await getCountFromServer(postsRef);
+					totalPosts = snap.data().count;
+				} catch (e) {
+					console.error(e);
+					totalPosts = null;
+				}
+				updatePager();
+			}
+
+			function updatePager() {
+				const totalPages = totalPosts === null
+					? null
+					: Math.max(1, Math.ceil(totalPosts / PAGE_SIZE));
+
+				const hasPrev = currentPage > 0;
+
+				// 次のページの起点（このページの最後の投稿）が分かっているときだけ「次へ」を有効にする
+				let hasNext;
+				if (totalPages !== null) {
+					hasNext = currentPage + 1 < totalPages && !!pageCursors[currentPage + 1];
+				} else {
+					hasNext = !!latestSnapshot
+						&& latestSnapshot.docs.length === PAGE_SIZE
+						&& !!pageCursors[currentPage + 1];
+				}
+
+				const label = totalPages !== null
+					? (currentPage + 1) + " / " + totalPages + " ページ"
+					: (currentPage + 1) + " ページ";
+
+				document.querySelectorAll(".prevButton").forEach((b) => { b.disabled = !hasPrev; });
+				document.querySelectorAll(".nextButton").forEach((b) => { b.disabled = !hasNext; });
+				document.querySelectorAll(".pageInfo").forEach((s) => { s.textContent = label; });
+			}
+
+			// 指定ページを読み込む（そのページはリアルタイムで更新される）
+			function loadPage(page) {
+				if (unsubscribe) unsubscribe();
+				currentPage    = page;
+				latestSnapshot = null;
+				updatePager();
+
+				const cursor = pageCursors[page];
+				const pageQuery = cursor
+					? query(postsRef, orderBy("createdAt", "desc"), startAfter(cursor), limit(PAGE_SIZE))
+					: query(postsRef, orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+
+				unsubscribe = onSnapshot(pageQuery, (snapshot) => {
+					// 削除などでこのページが空になったら、ひとつ前のページへ戻る
+					if (snapshot.empty && currentPage > 0) {
+						loadPage(currentPage - 1);
+						return;
+					}
+
+					latestSnapshot = snapshot;
+
+					// 次のページの起点を記録
+					if (snapshot.docs.length > 0) {
+						pageCursors[currentPage + 1] = snapshot.docs[snapshot.docs.length - 1];
+					}
+
+					renderPosts(snapshot);
+					updatePager();
+
+					// 他の人の書き込み・削除があったら総数も更新
+					if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().length > 0) {
+						refreshCount();
+					}
+				}, (error) => {
+					console.error(error);
+					statusArea.textContent = "投稿を読み込めなかった…orz (" + error.code + ")";
+				});
+			}
+
+			function goToPage(page) {
+				loadPage(page);
+				document.getElementById("pagerTop").scrollIntoView();
+			}
+
+			document.querySelectorAll(".prevButton").forEach((b) => {
+				b.addEventListener("click", () => goToPage(currentPage - 1));
+			});
+			document.querySelectorAll(".nextButton").forEach((b) => {
+				b.addEventListener("click", () => goToPage(currentPage + 1));
+			});
+
+			// ==============================
+			// 新規登録・ログオン
+			// ==============================
+			const authErrors = {
+				"auth/weak-password":        "パスワードは6文字以上にしてね",
+				"auth/invalid-email":        "メールアドレスの形式が正しくないよ",
+				"auth/email-already-in-use": "そのメールアドレスはもう登録されてるよ",
+				"auth/missing-password":     "パスワードを入力してね",
+				"auth/invalid-credential":   "メールアドレスかパスワードが違うよ",
+				"auth/popup-closed-by-user": "ログオンがキャンセルされたよ",
+				"auth/popup-blocked":        "ポップアップがブロックされたよ。許可してもう一度試してね",
+			};
+
+			document.getElementById("signupButton").addEventListener("click", async () => {
+				try {
+					await createUserWithEmailAndPassword(auth, userEmail.value, userPassword.value);
+					authStatus.textContent = "登録してログオンしたよ！";
+				} catch (e) {
+					console.error(e);
+					authStatus.textContent = authErrors[e.code] || "登録失敗…もう一度試してね";
+				}
+			});
+
+			document.getElementById("loginButton").addEventListener("click", async () => {
+				try {
+					await signInWithEmailAndPassword(auth, userEmail.value, userPassword.value);
+					authStatus.textContent = "ログオンしたよ！";
+				} catch (e) {
+					console.error(e);
+					authStatus.textContent = authErrors[e.code] || "ログオン失敗…メアドかパスワードを確認してね";
+				}
+			});
+
+			document.getElementById("googleButton").addEventListener("click", async () => {
+				try {
+					await signInWithPopup(auth, new GoogleAuthProvider());
+				} catch (e) {
+					console.error(e);
+					authStatus.textContent = authErrors[e.code] || "Googleログオン失敗…もう一度試してね";
+				}
+			});
+
+			document.getElementById("logoutButton").addEventListener("click", async () => {
+				await signOut(auth);
+				authStatus.textContent = "ログアウトしたよ（このままでも書き込めます）";
+			});
+
+			// ログオン状態が変わったら、削除ボタンの表示・非表示を反映するため再描画
+			onAuthStateChanged(auth, (user) => {
+				currentUser = user;
+				authStatus.textContent = user
+					? "ログオン中: " + user.email
+					: "ログアウトしたよ（このままでも書き込めます）";
+				if (latestSnapshot) renderPosts(latestSnapshot);
+			});
+
+			// ==============================
+			// 書き込み（連投防止つき）
+			// ==============================
+			let sending = false;
+
+			// 書き込み後、COOLDOWN_SEC秒間ボタンを押せなくする
+			function startCooldown() {
+				let remain = COOLDOWN_SEC;
+				submitButton.disabled = true;
+				submitButton.textContent = "あと" + remain + "秒待ってね";
+
+				const timer = setInterval(() => {
+					remain--;
+					if (remain <= 0) {
+						clearInterval(timer);
+						submitButton.disabled = false;
+						submitButton.textContent = "★書き込む★";
+					} else {
+						submitButton.textContent = "あと" + remain + "秒待ってね";
+					}
+				}, 1000);
+			}
+
+			// ★書き込む★ボタンが押されたときの処理
+			async function handleSubmit() {
+				if (sending || submitButton.disabled) return; // 送信中・待機中は無視
+
+				const name    = nameField.value.trim() || "名無しさん";
+				const comment = commentField.value.trim();
+
+				if (comment === "") {
+					statusArea.textContent = "コメントを入力してね！";
+					return;
+				}
+
+				sending = true;
+				submitButton.disabled = true; // 送信中の二重クリックを防ぐ
+
+				try {
+					await addDoc(postsRef, {
+						name: name,
+						comment: comment,
+						uid: currentUser ? currentUser.uid : null, // ログオン中ならuidを記録、匿名ならnull
+						createdAt: serverTimestamp()
+					});
+					commentField.value = "";
+					statusArea.textContent = "書き込みカンリョー！(≧∀≦)";
+
+					// 書き込んだら1ページ目（最新）を表示して、総数も更新
+					if (currentPage !== 0) loadPage(0);
+					refreshCount();
+
+					startCooldown();
+				} catch (error) {
+					console.error(error);
+					statusArea.textContent = "エラーで書き込めなかった…orz (" + error.code + ")";
+					submitButton.disabled = false; // 失敗したときは待たせない
+				} finally {
+					sending = false;
+				}
+			}
+
+			submitButton.addEventListener("click", handleSubmit);
+
+			// ==============================
+			// 起動
+			// ==============================
+			loadPage(0);
+			refreshCount();
+		</script>
+	</body>
+</html>
